@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>{{ subtitle }} - {{ title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" href="style.css" />
+  </head>
+  <body>
+    <div class="subbody">
+      <a href="{{ front }}"><img src="logo.svg" alt="{{ title }}" /></a>
+      <div class="content">{{ content|safe }}</div>
+      <div class="footer">
+        <a href="{{ front }}">Front</a>
+        <a href="{{ fore }}" class="{{ fore_class }}">Forward</a>
+        <a href="{{ back }}" class="{{ back_class }}">Back</a>
+      </div>
+    </div>
+  </body>
+</html>
