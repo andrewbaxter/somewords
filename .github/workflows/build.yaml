@@ -23,7 +23,12 @@ jobs:
           {
             "dests": [
               {
-                "ref": "docker://ghcr.io/andrewbaxter/somewords:$tag",
+                "ref": "docker://ghcr.io/andrewbaxter/somewords:$GITHUB_REF_NAME",
+                "user": "$GITHUB_ACTOR",
+                "password": "$GITHUB_TOKEN"
+              },
+              {
+                "ref": "docker://ghcr.io/andrewbaxter/somewords:latest",
                 "user": "$GITHUB_ACTOR",
                 "password": "$GITHUB_TOKEN"
               }
