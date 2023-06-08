@@ -1542,6 +1542,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0"
 
 [[package]]
+name = "somewords"
+version = "0.1.0"
+dependencies = [
+ "askama",
+ "chrono",
+ "clap",
+ "gix",
+ "loga",
+ "pulldown-cmark",
+]
+
+[[package]]
 name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1659,18 +1671,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "794a32261a1f5eb6a4462c81b59cec87b5c27d5deea7dd1ac8fc781c41d226db"
 dependencies = [
  "arrayvec",
-]
-
-[[package]]
-name = "unblog"
-version = "0.1.0"
-dependencies = [
- "askama",
- "chrono",
- "clap",
- "gix",
- "loga",
- "pulldown-cmark",
 ]
 
 [[package]]

@@ -4,17 +4,20 @@
     <meta charset="utf-8" />
     <title>{{ subtitle }} - {{ title }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" type="text/css" href="style.css" />
+    <link rel="stylesheet" type="text/css" href="index.css" />
   </head>
   <body>
-    <div class="subbody">
-      <a href="{{ front }}"><img src="logo.svg" alt="{{ title }}" /></a>
-      <div class="content">{{ content|safe }}</div>
-      <div class="footer">
+    <div class="everything">
+      <a href="{{ front }}" class="title"
+        ><img src="logo.svg" alt="{{ title }}"
+      /></a>
+      <div class="nav">
         <a href="{{ front }}">Front</a>
         <a href="{{ fore }}" class="{{ fore_class }}">Forward</a>
         <a href="{{ back }}" class="{{ back_class }}">Back</a>
       </div>
+      <div class="body">{{ body|safe }}</div>
+      <div class="footer">{{ footer|safe }}</div>
     </div>
   </body>
 </html>

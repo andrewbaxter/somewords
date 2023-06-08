@@ -2,6 +2,8 @@
 
 A very tiny static page generator, from a git repo with markdown documents at the top level.
 
+This only deals with data in the top level of the repo. All markdown documents are turned into pages, with an index page pointing to the first. All non-markdown documents are copied as-is.
+
 You need a `logo.svg` in the same directory as your documents.
 
 ## Use it
@@ -23,4 +25,10 @@ blah
 
 ## Customization
 
-- Create your own `style.css` file and place it alongside your documents
+- Create a `footer.md` which will get appended to all pages in a separate footer section
+- Create a `index.css` dir in the top level with an `index.css` - this will be used instead of the built in css
+
+## Included resources
+
+- The [Nunito](https://github.com/googlefonts/nunito) font is used in the default style, available via the Open Font License
+- The [Oxygen Mono](http://sansoxygen.com/) font is used in the default style, available via the Open Font License

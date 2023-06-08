@@ -18,9 +18,17 @@ use loga::{
     ResultContext,
 };
 
+#[cfg(test)]
+mod test_colors {
+    fn test_oklab() { }
+}
+
 fn main() {
     fn inner() -> Result<(), loga::Error> {
         let log = &loga::Log::new(loga::Level::Info);
+        let root = current_dir()?;
+        let repo = gix::open(&root)?;
+        let doc_dir = root.clone();
 
         // Command line args
         #[derive(Parser)]
@@ -32,9 +40,6 @@ fn main() {
         }
 
         let args = Args::parse();
-        let repo = gix::open(".")?;
-        let root = current_dir()?;
-        let doc_root = root.clone();
 
         // Prep file histories from git
         struct HistoryEntry {
@@ -88,8 +93,13 @@ fn main() {
         }
 
         let mut docs = vec![];
-        for doc in read_dir(&doc_root).unwrap() {
-            let doc = match doc {
+        let mut other = vec![];
+        let mut copied_style = false;
+        for doc in read_dir(&doc_dir).unwrap() {
+            let (doc, doc_type) = match doc.and_then(|d| {
+                let t = d.file_type()?;
+                Ok((d, t))
+            }) {
                 Ok(d) => d,
                 Err(e) => {
                     log.warn_e(e.into(), "Error listing dir element", ea!());
@@ -97,42 +107,79 @@ fn main() {
                 },
             };
             let filename = doc.file_name().to_string_lossy().to_string();
-            let short_filename = match filename.strip_suffix(".md") {
-                Some(f) => f,
-                None => continue,
-            };
-            let history = match history.remove(&filename.to_string()) {
-                Some(h) => h,
+            if !doc_type.is_file() {
+                continue;
+            }
+            match filename.strip_suffix(".md") {
+                Some(short_filename) => {
+                    let history = match history.remove(&filename.to_string()) {
+                        Some(h) => h,
+                        None => {
+                            continue;
+                        },
+                    };
+                    docs.push(DocMeta {
+                        path: doc.path(),
+                        filename: filename.clone(),
+                        out_filename: format!("{}.html", short_filename),
+                        history: history,
+                    });
+                },
                 None => {
-                    continue;
+                    if filename == "index.css" {
+                        copied_style = true;
+                    }
+                    other.push(filename);
                 },
             };
-            docs.push(DocMeta {
-                path: doc.path(),
-                filename: filename.clone(),
-                out_filename: format!("{}.html", short_filename),
-                history: history,
-            });
         }
         docs.sort_by_cached_key(|m| m.history.created_time);
         docs.reverse();
 
+        // Footer?
+        let footer = match fs::read(doc_dir.join("footer.md")) {
+            Ok(o) => {
+                let mut out = String::new();
+                pulldown_cmark::html::push_html(
+                    &mut out,
+                    pulldown_cmark::Parser::new(&String::from_utf8_lossy(&o).to_string()),
+                );
+                out
+            },
+            Err(e) => {
+                match e.kind() {
+                    std::io::ErrorKind::NotFound => "".to_string(),
+                    _ => {
+                        return Err(e).log_context(log, "Error loading footer", ea!());
+                    },
+                }
+            },
+        };
+
         // Prep out dir and random files
         let out_dir = root.join("pages");
         create_dir_all(&out_dir)?;
-        let style_path = out_dir.join("style.css");
-        match fs::copy(doc_root.join("style.css"), &style_path) {
-            Ok(_) => { },
-            Err(e) => match e.kind() {
-                std::io::ErrorKind::NotFound => {
-                    fs::write(
-                        &style_path,
-                        include_bytes!("style.css"),
-                    ).log_context(log, "Failed to copy built-in style.css", ea!())?;
-                },
-                _ => return Err(e).log_context(log, "Failed to copy user-provided style.css", ea!()),
-            },
-        };
+        if !copied_style {
+            for (
+                name,
+                bytes,
+            ) in [
+                ("index.css", include_bytes!("index.css") as &[u8]),
+                ("Nunito-VariableFont_wght.ttf", include_bytes!("Nunito-VariableFont_wght.ttf") as &[u8]),
+                ("OxygenMono-Regular.ttf", include_bytes!("OxygenMono-Regular.ttf") as &[u8]),
+            ] {
+                fs::write(
+                    out_dir.join(name),
+                    bytes,
+                ).log_context(log, "Failed to copy built-in file", ea!(name = name))?;
+            }
+        }
+        for other in other {
+            fs::copy(
+                doc_dir.join(&other),
+                out_dir.join(&other),
+            ).log_context(log, "Failed to copy over non-doc file", ea!(file = other))?;
+        }
 
         // For each document, generate a page
         for (i, doc) in docs.iter().enumerate() {
@@ -180,19 +227,23 @@ fn main() {
                             }
                         },
                         pulldown_cmark::Event::Text(t) => {
-                            title.push_str(&t);
+                            if in_h1 {
+                                title.push_str(&t);
+                            }
                         },
                         pulldown_cmark::Event::Code(t) => {
-                            title.push_str(&t);
+                            if in_h1 {
+                                title.push_str(&t);
+                            }
                         },
                         _ => { },
                     }
                 }
             };
-            let content = {
-                let mut content = String::new();
-                pulldown_cmark::html::push_html(&mut content, new_markdown.into_iter());
-                content
+            let body = {
+                let mut body = String::new();
+                pulldown_cmark::html::push_html(&mut body, new_markdown.into_iter());
+                body
             };
 
             #[derive(Template)]
@@ -200,7 +251,8 @@ fn main() {
             struct PageTemplate {
                 title: String,
                 subtitle: String,
-                content: String,
+                body: String,
+                footer: String,
                 front: String,
                 fore: String,
                 fore_class: String,
@@ -212,7 +264,8 @@ fn main() {
             fs::write(out_dir.join(&doc.out_filename), PageTemplate {
                 title: args.title.clone(),
                 subtitle: title.clone(),
-                content: content,
+                footer: footer.clone(),
+                body: body,
                 front: docs.get(0).unwrap().out_filename.clone(),
                 fore: docs.get(i.saturating_sub(1)).unwrap().out_filename.clone(),
                 fore_class: if i == 0 {
