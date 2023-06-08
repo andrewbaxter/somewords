@@ -16,28 +16,18 @@ jobs:
         with:
           command: build
           args: --release
-      - uses: actions/upload-artifact@master
-        with:
-          name: bin
-          path: target/release/somewords
-          retention-days: 1
-  docker:
-    needs:
-      - build
-    runs-on: ghcr.io/rendaw/dinker:latest
-    steps:
-      - uses: actions/download-artifact@master
-        with:
-          name: bin
-          path: somewords
       - env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for tag in "latest" "$GITHUB_REF_NAME"; do /dinker <(cat << ELEPHANT
+          cat > dinker.json << ELEPHANT
           {
-            "dest": "docker://ghcr.io/andrewbaxter/somewords:$tag",
-            "dest_user": "$GITHUB_ACTOR",
-            "dest_password": "$GITHUB_TOKEN",
+            "dest": [
+              {
+                "ref://ghcr.io/andrewbaxter/somewords:$tag"
+                "user": "$GITHUB_ACTOR",
+                "password": "$GITHUB_TOKEN"
+              }
+            ],
             "arch": "amd64",
             "os": "linux",
             "files": [
@@ -48,4 +38,6 @@ jobs:
             ]
           }
           ELEPHANT
-          ); done
+      - uses: ghcr.io/rendaw/dinker:latest
+        with:
+          args: /dinker dinker.json
