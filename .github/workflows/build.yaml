@@ -21,7 +21,7 @@ jobs:
         run: |
           cat > dinker.json << ELEPHANT
           {
-            "dest": [
+            "dests": [
               {
                 "ref": "docker://ghcr.io/andrewbaxter/somewords:$tag",
                 "user": "$GITHUB_ACTOR",
