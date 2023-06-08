@@ -38,6 +38,6 @@ jobs:
             ]
           }
           ELEPHANT
-      - uses: docker://ghcr.io/rendaw/dinker:latest
+      - uses: docker://ghcr.io/andrewbaxter/dinker:latest
         with:
           args: /dinker dinker.json
