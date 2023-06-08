@@ -32,7 +32,7 @@ jobs:
             "os": "linux",
             "files": [
               {
-                "source": "somewords",
+                "source": "target/release/somewords",
                 "mode": "755"
               }
             ]
