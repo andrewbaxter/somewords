@@ -10,8 +10,8 @@ You need a `logo.svg` in the same directory as your documents.
 
 ### Binary
 
-1. `cargo install unblog`
-2. `unblog "My Blog" https://github.com/my/repo/commits/`
+1. `cargo install somewords`
+2. `somewords "My Blog" https://github.com/my/repo/commits/`
 
 The pages will be generated in `pages/`.
 

@@ -19,7 +19,7 @@ jobs:
       - uses: actions/upload-artifact@master
         with:
           name: bin
-          path: target/x86_64-unknown-linux-musl/release/somewords
+          path: target/release/somewords
           retention-days: 1
   docker:
     needs:
