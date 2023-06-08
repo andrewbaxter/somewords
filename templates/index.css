@@ -8,20 +8,22 @@
     src: url('OxygenMono-Regular.ttf');
 }
 
+/* prettier-ignore */
 :root {
     --s-h-gutter: 0.5cm;
     --s-horiz-pad: 0.12cm;
     --s-vert-pad: 0.05cm;
     --s-li-gutter: 0.6cm;
     --s-big-pad: 0.3cm;
-    --c-h-border: #bfbfbf;
-    --c-background: #f8f8f8;
-    --c-code-background: #e7e7e7;
-    --c-button-background-hover: rgb(253, 253, 253);
-    --c-link: #4f4f83;
-    --c-date-link: #6f6683;
-    --c-text-light: #5e5e5e;
-    --c-code: rgb(46, 46, 46);
+    --c-h-border: '^c_h_border^';
+    --c-background: '^c_background^';
+    --c-code-background: '^c_code_back^';
+    --c-button-background-hover: '^c_button_background_hover^';
+    --c-link: '^c_link^';
+    --c-link-hover: '^c_link_hover^';
+    --c-date-link: '^c_date_link^';
+    --c-text-light: '^c_text_light^';
+    --c-code: '^c_code^';
 }
 
 /* Specific structure */
@@ -89,6 +91,7 @@ body {
 
 .nav>*:hover {
     background-color: var(--c-button-background-hover);
+    color: var(--c-link);
 }
 
 .timelink {
@@ -192,4 +195,8 @@ code {
 a {
     text-decoration: none;
     color: var(--c-link);
+}
+
+a:hover {
+    color: var(--c-link-hover);
 }

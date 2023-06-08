@@ -27,8 +27,3 @@ blah
 
 - Create a `footer.md` which will get appended to all pages in a separate footer section
 - Create a `index.css` dir in the top level with an `index.css` - this will be used instead of the built in css
-
-## Included resources
-
-- The [Nunito](https://github.com/googlefonts/nunito) font is used in the default style, available via the Open Font License
-- The [Oxygen Mono](http://sansoxygen.com/) font is used in the default style, available via the Open Font License

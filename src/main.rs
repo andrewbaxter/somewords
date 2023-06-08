@@ -17,11 +17,12 @@ use loga::{
     ea,
     ResultContext,
 };
-
-#[cfg(test)]
-mod test_colors {
-    fn test_oklab() { }
-}
+use palette::{
+    IntoColor,
+    Srgb,
+    Oklch,
+    OklabHue,
+};
 
 fn main() {
     fn inner() -> Result<(), loga::Error> {
@@ -37,9 +38,19 @@ fn main() {
             pub title: String,
             /// Prefix URL for commits; commit hash will be appended for commit links
             pub repo: String,
+            /// Represents background color as an angle from 0 (mauve) to 360 (mauve).
+            /// Greyscale if not specified.
+            #[arg(long)]
+            pub color_bg: Option<f32>,
+            /// A color relative to the background color if the background color is specified,
+            /// otherwise an absolute color.  Defaults to 200 (absolute) or 60 (relative).
+            #[arg(long)]
+            pub color_accent: Option<f32>,
         }
 
         let args = Args::parse();
+        let color_bg = args.color_bg.map(|c| OklabHue::from_degrees(c));
+        let color_accent_offset = args.color_accent;
 
         // Prep file histories from git
         struct HistoryEntry {
@@ -173,6 +184,92 @@ fn main() {
                     bytes,
                 ).log_context(log, "Failed to copy built-in file", ea!(name = name))?;
             }
+
+            fn color_to_str(c: Oklch<f32>) -> String {
+                let c: Srgb<f32> = c.into_color();
+                return format!("rgb({}%, {}%, {}%)", c.red * 100., c.green * 100., c.blue * 100.);
+            }
+
+            let mut c_h_border = Oklch {
+                l: 0.80465806,
+                chroma: 0.,
+                hue: OklabHue::from_degrees(0.0),
+            };
+            let mut c_background = Oklch {
+                l: 0.99,
+                chroma: 0.,
+                hue: OklabHue::from_degrees(0.),
+            };
+            let mut c_code_background = Oklch {
+                l: 0.92797065,
+                chroma: 0.,
+                hue: OklabHue::from_degrees(0.),
+            };
+            let c_button_background_hover = Oklch {
+                l: 0.9940482,
+                chroma: 0.,
+                hue: OklabHue::from_degrees(0.0),
+            };
+            let mut c_link = Oklch {
+                l: 0.4516303,
+                chroma: 0.084099874,
+                hue: OklabHue::from_degrees(200.),
+            };
+            let mut c_link_hover = Oklch {
+                l: 0.6,
+                chroma: 0.13,
+                hue: OklabHue::from_degrees(200.),
+            };
+            let mut c_date_link = Oklch {
+                l: 0.52934384,
+                chroma: 0.046049066,
+                hue: OklabHue::from_degrees(200.),
+            };
+            let c_text_light = Oklch {
+                l: 0.48193148,
+                chroma: 0.,
+                hue: OklabHue::from_degrees(0.0),
+            };
+            let c_code = Oklch {
+                l: 0.30118382,
+                chroma: 0.,
+                hue: OklabHue::from_degrees(0.),
+            };
+            if let Some(c) = color_bg {
+                c_background.chroma = 0.005;
+                c_background.hue = c;
+                c_code_background.chroma = 0.01;
+                c_code_background.hue = c;
+                c_h_border.chroma = 0.005;
+                c_h_border.hue = c;
+            }
+            let color_accent = OklabHue::from_degrees(match (color_bg, color_accent_offset) {
+                (None, None) => 200.,
+                (None, Some(a)) => a,
+                (Some(a), None) => a.into_degrees() + 60.,
+                (Some(b), Some(r)) => b.into_degrees() + r,
+            });
+            c_link.hue = color_accent;
+            c_link_hover.hue = color_accent;
+            c_date_link.hue = color_accent;
+            let mut css = include_str!("../templates/index.css").to_string();
+            for (
+                k,
+                replacement,
+            ) in [
+                ("'^c_h_border^'", color_to_str(c_h_border)),
+                ("'^c_background^'", color_to_str(c_background)),
+                ("'^c_code_back^'", color_to_str(c_code_background)),
+                ("'^c_button_background_hover^'", color_to_str(c_button_background_hover)),
+                ("'^c_link^'", color_to_str(c_link)),
+                ("'^c_link_hover^'", color_to_str(c_link_hover)),
+                ("'^c_date_link^'", color_to_str(c_date_link)),
+                ("'^c_text_light^'", color_to_str(c_text_light)),
+                ("'^c_code^'", color_to_str(c_code)),
+            ] {
+                css = css.replace(k, &replacement);
+            }
+            fs::write(out_dir.join("index.css"), &css).log_context(log, "Failed to write style", ea!())?;
         }
         for other in other {
             fs::copy(
