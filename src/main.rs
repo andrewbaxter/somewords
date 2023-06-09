@@ -152,15 +152,18 @@ fn main() {
                     continue;
                 },
             };
+            let filename = doc.file_name().to_string_lossy().to_string();
             if !doc_type.is_file() {
+                eprintln!("Skipping non-file {}", filename);
                 continue;
             }
-            let filename = doc.file_name().to_string_lossy().to_string();
             if filename.starts_with(".") {
+                eprintln!("Skipping dot-file {}", filename);
                 continue;
             }
             match filename.strip_suffix(".md") {
                 Some(short_filename) => {
+                    eprintln!("Generating {}", filename);
                     let history = match history.remove(&filename.to_string()) {
                         Some(h) => h,
                         None => {
@@ -175,7 +178,9 @@ fn main() {
                     });
                 },
                 None => {
+                    eprintln!("Copying {}", filename);
                     if filename == "index.css" {
+                        eprintln!("Found {}, won't generate style", filename);
                         copied_style = true;
                     }
                     other.push(filename);
