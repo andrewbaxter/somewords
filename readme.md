@@ -30,6 +30,8 @@ The pages will be generated in `pages/`.
 
 Paste this in `.github/workflows/pages.yaml`, updating the args as necessary:
 
+**Note**! The title must be quoted with double quotes, github will split arguments ignoring single quotes.
+
 ```yaml
 name: Pages
 on:
@@ -43,7 +45,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: docker://ghcr.io/andrewbaxter/somewords:latest
         with:
-          args: /somewords 'Andrew Baxter' https://github.com/andrewbaxter/5987/commit/
+          args: /somewords "Andrew Baxter" https://github.com/andrewbaxter/5987/commit/
       - uses: actions/upload-artifact@v3
         with:
           name: github-pages
