@@ -5,7 +5,10 @@ use std::{
         self,
     },
     collections::HashMap,
-    env::current_dir,
+    env::{
+        current_dir,
+        args,
+    },
     path::PathBuf,
 };
 use askama::Template;
@@ -16,6 +19,7 @@ use clap::Parser;
 use loga::{
     ea,
     ResultContext,
+    DebugDisplay,
 };
 use palette::{
     IntoColor,
@@ -51,7 +55,13 @@ fn main() {
             pub color_accent: Option<f32>,
         }
 
-        let args = Args::parse();
+        let args =
+            Args
+            ::try_parse().log_context(
+                log,
+                "Failed to parse command line arguments",
+                ea!(argv = args().collect::<Vec<String>>().dbg_str()),
+            )?;
         let color_bg = args.color_bg.map(|c| OklabHue::from_degrees(c));
         let color_accent_offset = args.color_accent;
 
