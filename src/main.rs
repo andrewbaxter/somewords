@@ -152,8 +152,11 @@ fn main() {
                     continue;
                 },
             };
-            let filename = doc.file_name().to_string_lossy().to_string();
             if !doc_type.is_file() {
+                continue;
+            }
+            let filename = doc.file_name().to_string_lossy().to_string();
+            if filename.starts_with(".") {
                 continue;
             }
             match filename.strip_suffix(".md") {

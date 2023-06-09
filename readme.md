@@ -11,7 +11,7 @@ You need a `logo.svg` in the same directory as your documents.
 It does the following steps:
 
 - Creates a `pages/` output directory
-- Copies all non-`.md` files to the output directory
+- Copies all non-`.md`, non-dot files to the output directory
 - If it didn't copy an `index.css`, it generates the default style files including `index.css`
 - It translates all markdown files into html, and generates an index that redirects to the latest
 
