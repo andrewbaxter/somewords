@@ -30,6 +30,7 @@ use palette::{
 
 fn main() {
     fn inner() -> Result<(), loga::Error> {
+        const FOOTER_FILENAME: &'static str = "footer.md";
         let log = &loga::Log::new(loga::Level::Info);
         let root = current_dir()?;
         let repo =
@@ -162,6 +163,9 @@ fn main() {
                 log.info("Skipping dot-file", ea!());
                 continue;
             }
+            if filename == FOOTER_FILENAME {
+                continue;
+            }
             match filename.strip_suffix(".md") {
                 Some(short_filename) => {
                     let history = match history.remove(&filename.to_string()) {
@@ -190,7 +194,7 @@ fn main() {
         docs.reverse();
 
         // Footer?
-        let footer = match fs::read(doc_dir.join("footer.md")) {
+        let footer = match fs::read(doc_dir.join(FOOTER_FILENAME)) {
             Ok(o) => {
                 let mut out = String::new();
                 pulldown_cmark::html::push_html(
@@ -217,7 +221,6 @@ fn main() {
                 name,
                 bytes,
             ) in [
-                ("index.css", include_bytes!("index.css") as &[u8]),
                 ("Nunito-VariableFont_wght.ttf", include_bytes!("Nunito-VariableFont_wght.ttf") as &[u8]),
                 ("OxygenMono-Regular.ttf", include_bytes!("OxygenMono-Regular.ttf") as &[u8]),
             ] {
@@ -238,7 +241,7 @@ fn main() {
                 hue: OklabHue::from_degrees(0.0),
             };
             let mut c_background = Oklch {
-                l: 0.99,
+                l: 0.97,
                 chroma: 0.,
                 hue: OklabHue::from_degrees(0.),
             };
@@ -251,6 +254,11 @@ fn main() {
                 l: 0.9940482,
                 chroma: 0.,
                 hue: OklabHue::from_degrees(0.0),
+            };
+            let c_button_disabled = Oklch {
+                l: 0.74,
+                chroma: 0.018,
+                hue: OklabHue::from_degrees(200.),
             };
             let mut c_link = Oklch {
                 l: 0.4516303,
@@ -278,6 +286,7 @@ fn main() {
                 hue: OklabHue::from_degrees(0.),
             };
             if let Some(c) = color_bg {
+                c_background.l = 0.99;
                 c_background.chroma = 0.005;
                 c_background.hue = c;
                 c_code_background.chroma = 0.01;
@@ -303,6 +312,7 @@ fn main() {
                 ("'^c_background^'", color_to_str(c_background)),
                 ("'^c_code_back^'", color_to_str(c_code_background)),
                 ("'^c_button_background_hover^'", color_to_str(c_button_background_hover)),
+                ("'^c_button_disabled^'", color_to_str(c_button_disabled)),
                 ("'^c_link^'", color_to_str(c_link)),
                 ("'^c_link_hover^'", color_to_str(c_link_hover)),
                 ("'^c_date_link^'", color_to_str(c_date_link)),

@@ -19,6 +19,7 @@
     --c-background: '^c_background^';
     --c-code-background: '^c_code_back^';
     --c-button-background-hover: '^c_button_background_hover^';
+    --c-button-disabled: '^c_button_disabled^';
     --c-link: '^c_link^';
     --c-link-hover: '^c_link_hover^';
     --c-date-link: '^c_date_link^';
@@ -92,6 +93,14 @@ body {
 .nav>*:hover {
     background-color: var(--c-button-background-hover);
     color: var(--c-link);
+}
+
+.nav>.disabled_button {
+    color: var(--c-button-disabled);
+}
+
+.nav>.disabled_button:hover {
+    background-color: var(--c-background);
 }
 
 .timelink {
