@@ -153,17 +153,17 @@ fn main() {
                 },
             };
             let filename = doc.file_name().to_string_lossy().to_string();
+            let log = &log.fork(ea!(file = filename));
             if !doc_type.is_file() {
-                eprintln!("Skipping non-file {}", filename);
+                log.info("Skipping non-file", ea!());
                 continue;
             }
             if filename.starts_with(".") {
-                eprintln!("Skipping dot-file {}", filename);
+                log.info("Skipping dot-file", ea!());
                 continue;
             }
             match filename.strip_suffix(".md") {
                 Some(short_filename) => {
-                    eprintln!("Generating {}", filename);
                     let history = match history.remove(&filename.to_string()) {
                         Some(h) => h,
                         None => {
@@ -178,7 +178,6 @@ fn main() {
                     });
                 },
                 None => {
-                    eprintln!("Copying {}", filename);
                     if filename == "index.css" {
                         eprintln!("Found {}, won't generate style", filename);
                         copied_style = true;
@@ -315,6 +314,8 @@ fn main() {
             fs::write(out_dir.join("index.css"), &css).log_context(log, "Failed to write style", ea!())?;
         }
         for other in other {
+            let log = &log.fork(ea!(file = other));
+            log.info("Copying non-markdown file", ea!());
             fs::copy(
                 doc_dir.join(&other),
                 out_dir.join(&other),
@@ -324,6 +325,7 @@ fn main() {
         // For each document, generate a page
         for (i, doc) in docs.iter().enumerate() {
             let log = &log.fork(ea!(page = doc.filename));
+            log.info("Generating html from markdown file", ea!());
             let commit_url = format!("{}{}", args.repo, doc.history.updated_hash);
             let old_markdown =
                 String::from_utf8(
