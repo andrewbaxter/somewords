@@ -34,6 +34,9 @@ Paste this in `.github/workflows/pages.yaml`, updating the args as necessary:
 
 ```yaml
 name: Pages
+permissions:
+  id-token: write
+  pages: write
 on:
   push:
     branches:
@@ -45,10 +48,9 @@ jobs:
       - uses: actions/checkout@v2
       - uses: docker://ghcr.io/andrewbaxter/somewords:latest
         with:
-          args: /somewords "Andrew Baxter" https://github.com/andrewbaxter/5987/commit/
-      - uses: actions/upload-artifact@v3
+          args: /somewords "Your Blog" https://github.com/you/blog/commit/
+      - uses: actions/upload-pages-artifact@v1
         with:
-          name: github-pages
           path: pages
       - uses: actions/deploy-pages@v2
 ```
@@ -57,4 +59,4 @@ jobs:
 
 - Use `--color-bg 200` or `--color-accent 60` to colorize the default style (see `--help`)
 - Create a `footer.md` which will get appended to all pages in a separate footer section
-- Create a `index.css` dir in the top level with an `index.css` - this will be used instead of the built in css
+- Create a `index.css` dir in the top level with an `index.css` - this will disable the built-in style generation
