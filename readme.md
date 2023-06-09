@@ -1,14 +1,12 @@
 # Somewords
 
-A very tiny static page generator, from a git repo with markdown documents at the top level.
-
-This only deals with data in the top level of the repo. All markdown documents are turned into pages, with an index page pointing to the first. All non-markdown documents are copied as-is.
-
-You need a `logo.svg` in the same directory as your documents.
+A very tiny static page generator, from a git repo with markdown documents.
 
 ## How it works
 
 When you call somewords, it assumes the current directory is the root of the repository. It only looks in the root for documents, so you can put WIP documents in a subdirectory if you'd like.
+
+You need a `logo.svg` in the same directory as your documents.
 
 It does the following steps:
 
@@ -30,10 +28,27 @@ The pages will be generated in `pages/`.
 
 ### Github Actions
 
-Paste this action
+Paste this in `.github/workflows/pages.yaml`, updating the args as necessary:
 
 ```yaml
-blah
+name: Pages
+on:
+  push:
+    branches:
+      - "master"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: docker://ghcr.io/andrewbaxter/somewords:latest
+        with:
+          args: /somewords 'Andrew Baxter' https://github.com/andrewbaxter/5987/commit/
+      - uses: actions/upload-artifact@v3
+        with:
+          name: github-pages
+          path: pages
+      - uses: actions/deploy-pages@v2
 ```
 
 ## Customization

@@ -28,7 +28,10 @@ fn main() {
     fn inner() -> Result<(), loga::Error> {
         let log = &loga::Log::new(loga::Level::Info);
         let root = current_dir()?;
-        let repo = gix::open(&root)?;
+        let repo =
+            gix::open(
+                &root,
+            ).log_context(log, "Couldn't open git repo in current directory", ea!(cwd = root.to_string_lossy()))?;
         let doc_dir = root.clone();
 
         // Command line args
@@ -61,15 +64,30 @@ fn main() {
         }
 
         let mut history: HashMap<String, HistoryEntry> = HashMap::new();
-        for commit in repo.head()?.log_iter().rev()?.into_iter().flatten() {
-            let commit = repo.find_object(commit?.new_oid)?.into_commit();
-            for entry in commit.tree()?.iter() {
-                let entry = entry?;
+        for commit in repo
+            .head()
+            .log_context(log, "Failed to get head commit", ea!())?
+            .log_iter()
+            .rev()
+            .log_context(log, "Error starting commit walk", ea!())?
+            .into_iter()
+            .flatten() {
+            let commit =
+                repo
+                    .find_object(commit.log_context(log, "Error reading commit in history", ea!())?.new_oid)
+                    .log_context(log, "Unable to find object in git corresponding to commit", ea!())?
+                    .into_commit();
+            for entry in commit.tree().log_context(log, "Error accessing commit tree", ea!())?.iter() {
+                let entry = entry.log_context(log, "Error accessing entry in commit tree", ea!())?;
                 match entry.mode() {
                     gix::objs::tree::EntryMode::Blob => {
                         let time =
                             NaiveDateTime::from_timestamp_opt(
-                                commit.time()?.seconds_since_unix_epoch.into(),
+                                commit
+                                    .time()
+                                    .log_context(log, "Error accessing commit tree entry time", ea!())?
+                                    .seconds_since_unix_epoch
+                                    .into(),
                                 0,
                             ).unwrap();
                         let hash = commit.id.to_hex().to_string();
@@ -107,8 +125,15 @@ fn main() {
         let mut other = vec![];
         let mut copied_style = false;
         for doc in read_dir(&doc_dir).unwrap() {
-            let (doc, doc_type) = match doc.and_then(|d| {
-                let t = d.file_type()?;
+            let (doc, doc_type) = match doc.log_context(log, "Error reading directory entry", ea!()).and_then(|d| {
+                let t =
+                    d
+                        .file_type()
+                        .log_context(
+                            log,
+                            "Unable to determine directory entry type",
+                            ea!(entry = d.file_name().to_string_lossy()),
+                        )?;
                 Ok((d, t))
             }) {
                 Ok(d) => d,
@@ -169,7 +194,7 @@ fn main() {
 
         // Prep out dir and random files
         let out_dir = root.join("pages");
-        create_dir_all(&out_dir)?;
+        create_dir_all(&out_dir).log_context(log, "Failed to create output directory", ea!())?;
         if !copied_style {
             for (
                 name,
